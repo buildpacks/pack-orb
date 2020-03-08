@@ -1,0 +1,36 @@
+version: 2.1
+orbs:
+  orb-tools: circleci/orb-tools@9.0.0
+
+workflows:
+  validate-publish-dev:
+    jobs:
+      - orb-tools/lint
+      - orb-tools/publish-dev:
+          orb-name: buildpacks/pack
+          orb-path: orb.yml
+          publish-token-variable: CIRCLE_TOKEN
+          checkout: true
+          requires:
+            - orb-tools/lint
+  tag-triggered-publish:
+    jobs:
+      - hold-for-approval:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+          type: approval
+      - orb-tools/publish:
+          orb-ref: buildpacks/pack@$CIRCLE_TAG
+          orb-path: orb.yml
+          publish-token-variable: CIRCLE_TOKEN
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+          requires:
+            - hold-for-approval
+

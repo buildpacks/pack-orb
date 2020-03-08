@@ -1,0 +1,145 @@
+version: 2.1
+description: Cloud Native Buildpacks Orb
+
+orbs:
+  docker: circleci/docker@0.5.18
+  orb-tools: circleci/orb-tools@8.8.0
+jobs:
+  build:
+    description: "Build OCI Image"
+    machine: true
+    parameters:
+      image-name:
+        type: string
+      image-file:
+        type: string
+        default: "image.tgz"
+      builder:
+        type: string
+      buildpack:
+        type: string
+        default: ""
+    steps:
+      - install-pack
+      - checkout
+      - pack-build:
+          image-name: << parameters.image-name >>
+          builder: << parameters.builder >>
+          buildpack: << parameters.buildpack >>
+      - save-image-to-workspace:
+          image-name: << parameters.image-name >>
+          image-file: << parameters.image-file >>
+commands:
+  save-image-to-workspace:
+    description: "Save image"
+    parameters:
+      image-name:
+        type: string
+      image-file:
+        type: string
+        default: image.tgz
+    steps:
+      - run:
+          name: Save image to workspace
+          command: |
+            mkdir -p images
+            docker save -o images/<< parameters.image-file >> << parameters.image-name >>
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./
+  pack-build:
+    description: "Run pack build"
+    parameters:
+      image-name:
+        type: string
+      builder:
+        type: string
+      buildpack:
+        type: string
+    steps:
+      - restore_cache:
+          key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}
+      - run:
+          name: Run pack build
+          command: |
+            pack build << parameters.image-name >> --builder << parameters.builder >> $(if [ -n "<< parameters.buildpack >>" ]; then echo -n "--buildpack << parameters.buildpack >>"; else echo -n ""; fi)
+      - save_cache:
+          key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}-{{ epoch }}
+          paths:
+            - /var/lib/docker/volumes/
+  install-pack:
+    description: "Setup and install pack"
+    parameters:
+      install-dir:
+        default: ~/bin
+        description: |
+          Directory in which to install Pack binary
+        type: string
+      version:
+        type: string
+        default: 0.8.1
+    steps:
+      - run:
+          name: "Setup and install pack"
+          command: |
+            mkdir -p << parameters.install-dir >>
+            curl -L "https://github.com/buildpack/pack/releases/download/v<< parameters.version >>/pack-v<< parameters.version >>-linux.tgz" | tar xzm -C << parameters.install-dir >>
+            export PATH="$PATH:<< parameters.install-dir >>"
+            mkdir -p ~/.docker/
+            if [ ! -f ~/.docker/config.json ]; then
+              echo "{}" > ~/.docker/config.json
+            fi
+examples:
+  heroku:
+    description: Run the Heroku Buildpacks
+    usage:
+      version: 2.1
+      orbs:
+        buildpacks: buildpacks/pack-orb@x.y.z
+      workflows:
+        main:
+          jobs:
+            - buildpacks/build:
+                image-name: myimage
+                builder: heroku/buildpacks:18
+  use-buildpack:
+    description: Run the Heroku Buildpacks
+    usage:
+      version: 2.1
+      orbs:
+        buildpacks: buildpacks/pack-orb@x.y.z
+      workflows:
+        main:
+          jobs:
+            - buildpacks/build:
+                image-name: myimage
+                builder: heroku/buildpacks:18
+                buildpack: heroku/ruby
+  build-and-publish:
+    description: Run the Heroku Buildpacks
+    usage:
+      version: 2.1
+      orbs:
+        buildpacks: buildpacks/pack-orb@x.y.z
+      jobs:
+        publish:
+          machine: true
+          steps:
+            - attach_workspace:
+                at: /tmp/workspace
+            - run:
+                command: |
+                  docker load -i /tmp/workspace/images/myimage.tgz
+                  docker push myimage
+      workflows:
+        main:
+          jobs:
+            - buildpacks/build:
+                image-name: myimage
+                image-file: myimage.tgz
+                builder: heroku/buildpacks:18
+            - publish:
+                requires:
+                  - buildpacks/build
+
