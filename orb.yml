@@ -96,7 +96,7 @@ examples:
     usage:
       version: 2.1
       orbs:
-        buildpacks: buildpacks/pack-orb@x.y.z
+        buildpacks: buildpacks/pack@x.y.z
       workflows:
         main:
           jobs:
@@ -108,7 +108,7 @@ examples:
     usage:
       version: 2.1
       orbs:
-        buildpacks: buildpacks/pack-orb@x.y.z
+        buildpacks: buildpacks/pack@x.y.z
       workflows:
         main:
           jobs:
@@ -121,7 +121,7 @@ examples:
     usage:
       version: 2.1
       orbs:
-        buildpacks: buildpacks/pack-orb@x.y.z
+        buildpacks: buildpacks/pack@x.y.z
       jobs:
         publish:
           machine: true
