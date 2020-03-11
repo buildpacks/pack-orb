@@ -5,7 +5,6 @@ display:
   source_url: "https://github.com/buildpacks/pack-orb"
   home_url: "https://buildpacks.io/"
 
-
 orbs:
   docker: circleci/docker@0.5.18
   orb-tools: circleci/orb-tools@8.8.0
