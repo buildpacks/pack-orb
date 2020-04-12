@@ -24,6 +24,7 @@ jobs:
         type: string
         default: ""
     steps:
+      - run: sudo chown -R circleci /var/lib/docker/volumes
       - install-pack
       - checkout
       - pack-build:
