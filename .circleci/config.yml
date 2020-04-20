@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  orb-tools: circleci/orb-tools@9.0.0
+  orb-tools: circleci/orb-tools@9.1.0
 
 workflows:
   validate-publish-dev:
