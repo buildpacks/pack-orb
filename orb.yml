@@ -23,9 +23,13 @@ jobs:
       buildpack:
         type: string
         default: ""
+      version:
+        type: string
+        default: 0.11.2
     steps:
       - run: sudo chown -R circleci /var/lib/docker/volumes
-      - install-pack
+      - install-pack:
+          version: << parameters.pack-version >>
       - checkout
       - pack-build:
           image-name: << parameters.image-name >>
