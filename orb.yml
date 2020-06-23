@@ -6,8 +6,8 @@ display:
   home_url: "https://buildpacks.io/"
 
 orbs:
-  docker: circleci/docker@0.5.18
-  orb-tools: circleci/orb-tools@8.8.0
+  docker: circleci/docker@1.2.1
+  orb-tools: circleci/orb-tools@9.1.0
 jobs:
   build:
     description: "Build OCI Image"
@@ -23,9 +23,13 @@ jobs:
       buildpack:
         type: string
         default: ""
+      version:
+        type: string
+        default: 0.11.2
     steps:
       - run: sudo chown -R circleci /var/lib/docker/volumes
-      - install-pack
+      - install-pack:
+          version: << parameters.pack-version >>
       - checkout
       - pack-build:
           image-name: << parameters.image-name >>
@@ -83,7 +87,7 @@ commands:
         type: string
       version:
         type: string
-        default: 0.10.0
+        default: 0.11.2
     steps:
       - run:
           name: "Setup and install pack"
