@@ -23,9 +23,12 @@ jobs:
       buildpack:
         type: string
         default: ""
+      env-vars:
+        type: string
+        default: ""
       version:
         type: string
-        default: 0.11.2
+        default: 0.13.1
     steps:
       - run: sudo chown -R circleci /var/lib/docker/volumes
       - install-pack:
@@ -35,6 +38,7 @@ jobs:
           image-name: << parameters.image-name >>
           builder: << parameters.builder >>
           buildpack: << parameters.buildpack >>
+          env-vars: << parameters.env-vars >>
       - save-image-to-workspace:
           image-name: << parameters.image-name >>
           image-file: << parameters.image-file >>
@@ -66,13 +70,35 @@ commands:
         type: string
       buildpack:
         type: string
+      env-vars:
+        type: string
     steps:
       - restore_cache:
           key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}
       - run:
           name: Run pack build
           command: |
-            pack build << parameters.image-name >> --builder << parameters.builder >> $(if [ -n "<< parameters.buildpack >>" ]; then echo -n "--buildpack << parameters.buildpack >>"; else echo -n ""; fi)
+            ENV_VARS=""
+
+            in="<< parameters.env-vars >>"
+            IFS=';' list=($in)
+            for item in "${list[@]}"; do
+              case "$item" in
+                 *\ * )
+                      IFS='='
+                      read -a strarr \<<<"$item"
+                      ENV_VARS="--env ${strarr[0]}=\"${strarr[1]}\" ${ENV_VARS}"
+                      unset IFS
+                      ;;
+                   *)
+                      ENV_VARS="--env ${item} ${ENV_VARS}"
+                      ;;
+              esac
+            done
+
+            BUILD_PACK_ARG=$(if [ -n "<< parameters.buildpack >>" ]; then echo -n "--buildpack << parameters.buildpack >>"; else echo -n ""; fi)
+
+            eval pack build << parameters.image-name >> --builder << parameters.builder >> "${BUILD_PACK_ARG}" "${ENV_VARS}"
       - save_cache:
           key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}-{{ epoch }}
           paths:
@@ -87,7 +113,7 @@ commands:
         type: string
       version:
         type: string
-        default: 0.11.2
+        default: 0.13.1
     steps:
       - run:
           name: "Setup and install pack"
