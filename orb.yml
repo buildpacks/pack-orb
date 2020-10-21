@@ -13,6 +13,8 @@ jobs:
     description: "Build OCI Image"
     machine: true
     parameters:
+      working-directory:
+        type: string
       image-name:
         type: string
       image-file:
@@ -35,6 +37,7 @@ jobs:
           version: << parameters.version >>
       - checkout
       - pack-build:
+          working-directory: << parameters.working-directory >>
           image-name: << parameters.image-name >>
           builder: << parameters.builder >>
           buildpack: << parameters.buildpack >>
@@ -64,6 +67,8 @@ commands:
   pack-build:
     description: "Run pack build"
     parameters:
+      working-directory:
+        type: string
       image-name:
         type: string
       builder:
@@ -96,9 +101,10 @@ commands:
               esac
             done
 
+            WORKING_DIRECTORY=$(if [ -n "<< parameters.working-directory >>" ]; then echo -n "--path << parameters.working-directory >>"; else echo -n ""; fi)
             BUILD_PACK_ARG=$(if [ -n "<< parameters.buildpack >>" ]; then echo -n "--buildpack << parameters.buildpack >>"; else echo -n ""; fi)
 
-            eval pack build << parameters.image-name >> --builder << parameters.builder >> "${BUILD_PACK_ARG}" "${ENV_VARS}"
+            eval pack build << parameters.image-name >> --builder << parameters.builder >> "${WORKING_DIRECTORY}" "${BUILD_PACK_ARG}" "${ENV_VARS}"
       - save_cache:
           key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}-{{ epoch }}
           paths:
