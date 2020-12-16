@@ -11,26 +11,38 @@ orbs:
 jobs:
   build:
     description: "Build OCI Image"
-    machine: true
+    machine:
+      image: << parameters.executor-image >>
     parameters:
       working-directory:
         type: string
+        description: The directory where the app source is located.
       image-name:
         type: string
+        description: Image name (aka tag) of the app image to be produced.
       image-file:
         type: string
+        description: Filename to save the app image as locally.
         default: "image.tgz"
       builder:
         type: string
+        description: Builder image name to use.
       buildpack:
         type: string
+        description: Explicit buildpack to use for building.
         default: ""
       env-vars:
         type: string
+        description: Build-time environment variables. Semicolon (;) delimited.
         default: ""
       version:
         type: string
+        description: Version of 'pack' to use.
         default: 0.13.1
+      executor-image:
+        type: string
+        description: Image to execute 'pack' in.
+        default: ubuntu-2004:202010-01
     steps:
       - run: sudo chown -R circleci /var/lib/docker/volumes
       - install-pack:
@@ -131,6 +143,7 @@ commands:
             if [ ! -f ~/.docker/config.json ]; then
               echo "{}" > ~/.docker/config.json
             fi
+
 examples:
   heroku:
     description: Run the Heroku Buildpacks
@@ -183,4 +196,3 @@ examples:
             - publish:
                 requires:
                   - buildpacks/build
-
