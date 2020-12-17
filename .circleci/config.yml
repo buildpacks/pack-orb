@@ -3,34 +3,61 @@ orbs:
   orb-tools: circleci/orb-tools@9.1.0
 
 workflows:
-  validate-publish-dev:
+  # validate-dev:
+  #   jobs:
+  #     - orb-tools/lint
+  #     - orb-tools/publish-dev:
+  #         orb-name: buildpacks/pack
+  #         orb-path: orb.yml
+  #         publish-token-variable: CIRCLE_TOKEN
+  #         checkout: true
+  #         requires:
+  #           - orb-tools/lint
+  wip:
     jobs:
-      - orb-tools/lint
-      - orb-tools/publish-dev:
-          orb-name: buildpacks/pack
-          orb-path: orb.yml
-          publish-token-variable: CIRCLE_TOKEN
-          checkout: true
-          requires:
-            - orb-tools/lint
-  tag-triggered-publish:
-    jobs:
-      - hold-for-approval:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
-          type: approval
-      - orb-tools/publish:
-          orb-ref: buildpacks/pack@$CIRCLE_TAG
-          orb-path: orb.yml
-          publish-token-variable: CIRCLE_TOKEN
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
-          requires:
-            - hold-for-approval
+      - github-release
+  # publish:
+  #   jobs:
+  #     - hold-for-approval:
+  #         filters:
+  #           branches:
+  #             ignore: /.*/
+  #           tags:
+  #             only: /^\d+\.\d+\.\d+$/
+  #         type: approval
+  #     - orb-tools/publish:
+  #         orb-ref: buildpacks/pack@$CIRCLE_TAG
+  #         orb-path: orb.yml
+  #         publish-token-variable: CIRCLE_TOKEN
+  #         filters:
+  #           branches:
+  #             ignore: /.*/
+  #           tags:
+  #             only: /^\d+\.\d+\.\d+$/
+  #         requires:
+  #           - hold-for-approval
 
+
+jobs:
+  github-release:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run:
+          name: "Install generator"
+          command: gem install github_changelog_generator
+      - run:
+          name: "Install releaser"
+          command: go get -u github.com/tcnksm/ghr
+      - checkout
+      - run:
+          name: "Generate changelog"
+          command: |
+            github_changelog_generator --user $CIRCLE_PROJECT_USERNAME --project $CIRCLE_PROJECT_REPONAME --token $GITHUB_BOT_PAT --future-release '0.2.2' -o CHANGELOG.tmp.md
+            # remove footer
+            head -n -3 CHANGELOG.tmp.md > CHANGELOG.md
+            cat CHANGELOG.md
+      - run:
+          name: "Create GH release"
+          command: |
+            ghr -t $GITHUB_BOT_PAT -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n 'pack-orb v0.2.2' -draft v0.2.2b
