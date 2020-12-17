@@ -1,0 +1,6 @@
+unreleased-only=true
+issues=false
+bugs-label=Fixes:
+bug-labels=type/bug
+header-label=## Changelog
+usernames-as-github-logins=true

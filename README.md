@@ -12,11 +12,7 @@ See the [documentation on the CircleCI Orb Registry](https://circleci.com/orbs/r
 
 ## Releasing
 
-Create a tag a push it:
-
-```
-$ git tag x.y.z
-$ git push --tags
-```
-
-Check [CircleCI](https://circleci.com/gh/buildpacks/pack-orb) to manually approve the release workflow.
+1. Create a `release/<#.#.#>` branch
+    - `<#.#.#>` will be the version released
+2. Check [CircleCI](https://circleci.com/gh/buildpacks/pack-orb) to manually approve the release workflow.
+3. Check [releases](https://github.com/buildpacks/pack-orb/releases) and publish release draft.

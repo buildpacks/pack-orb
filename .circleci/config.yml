@@ -3,7 +3,7 @@ orbs:
   orb-tools: circleci/orb-tools@9.1.0
 
 workflows:
-  validate-publish-dev:
+  validate-dev:
     jobs:
       - orb-tools/lint
       - orb-tools/publish-dev:
@@ -13,15 +13,21 @@ workflows:
           checkout: true
           requires:
             - orb-tools/lint
-  tag-triggered-publish:
+  draft-release:
     jobs:
       - hold-for-approval:
           filters:
             branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
+              only: /release\/.*/
           type: approval
+      - github-release:
+          filters:
+            branches:
+              only: /release\/.*/
+          requires:
+            - hold-for-approval
+  publish:
+    jobs:
       - orb-tools/publish:
           orb-ref: buildpacks/pack@$CIRCLE_TAG
           orb-path: orb.yml
@@ -31,6 +37,33 @@ workflows:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
-          requires:
-            - hold-for-approval
 
+jobs:
+  github-release:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run:
+          name: Install generator
+          command: gem install github_changelog_generator
+      - run:
+          name: Install releaser
+          command: go get -u github.com/tcnksm/ghr
+      - checkout
+      - run:
+          name: Determine version
+          command: |
+            [[ $CIRCLE_BRANCH =~ ^release/(.*)$ ]] && echo -n ${BASH_REMATCH[1]} > VERSION || (echo "failed to determine version" && exit 99)
+            cat VERSION
+      - run:
+          name: Generate changelog
+          command: |
+            github_changelog_generator --user $CIRCLE_PROJECT_USERNAME --project $CIRCLE_PROJECT_REPONAME --token $GITHUB_BOT_PAT --future-release $(cat VERSION) -o CHANGELOG.tmp.md
+            # remove footer
+            head -n -3 CHANGELOG.tmp.md > CHANGELOG.md
+            cat CHANGELOG.md
+      - run:
+          name: Create GH release
+          command: |
+            VERSION=$(cat VERSION)
+            ghr -draft -t $GITHUB_BOT_PAT -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
