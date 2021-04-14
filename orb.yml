@@ -17,6 +17,7 @@ jobs:
       working-directory:
         type: string
         description: The directory where the app source is located.
+        default: ""
       image-name:
         type: string
         description: Image name (aka tag) of the app image to be produced.
