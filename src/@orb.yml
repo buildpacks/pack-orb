@@ -5,9 +5,6 @@ display:
   source_url: "https://github.com/buildpacks/pack-orb"
   home_url: "https://buildpacks.io/"
 
-orbs:
-  docker: circleci/docker@1.2.1
-  orb-tools: circleci/orb-tools@9.1.0
 jobs:
   build:
     description: "Build OCI Image"
@@ -40,6 +37,10 @@ jobs:
         type: string
         description: Version of 'pack' to use.
         default: 0.13.1
+      after-checkout:
+        description: Optional steps to run after checking out the code.
+        type: steps
+        default: []
       executor-image:
         type: string
         description: Image to execute 'pack' in.
@@ -49,6 +50,10 @@ jobs:
       - install-pack:
           version: << parameters.version >>
       - checkout
+      - when:
+          name: Run after-checkout lifecycle hook steps.
+          condition: << parameters.after-checkout >>
+          steps: << parameters.after-checkout >>
       - pack-build:
           working-directory: << parameters.working-directory >>
           image-name: << parameters.image-name >>
@@ -144,56 +149,3 @@ commands:
             if [ ! -f ~/.docker/config.json ]; then
               echo "{}" > ~/.docker/config.json
             fi
-
-examples:
-  heroku:
-    description: Run the Heroku Buildpacks
-    usage:
-      version: 2.1
-      orbs:
-        buildpacks: buildpacks/pack@x.y.z
-      workflows:
-        main:
-          jobs:
-            - buildpacks/build:
-                image-name: myimage
-                builder: heroku/buildpacks:18
-  use-buildpack:
-    description: Run the Heroku Buildpacks
-    usage:
-      version: 2.1
-      orbs:
-        buildpacks: buildpacks/pack@x.y.z
-      workflows:
-        main:
-          jobs:
-            - buildpacks/build:
-                image-name: myimage
-                builder: heroku/buildpacks:18
-                buildpack: heroku/ruby
-  build-and-publish:
-    description: Run the Heroku Buildpacks
-    usage:
-      version: 2.1
-      orbs:
-        buildpacks: buildpacks/pack@x.y.z
-      jobs:
-        publish:
-          machine: true
-          steps:
-            - attach_workspace:
-                at: /tmp/workspace
-            - run:
-                command: |
-                  docker load -i /tmp/workspace/images/myimage.tgz
-                  docker push myimage
-      workflows:
-        main:
-          jobs:
-            - buildpacks/build:
-                image-name: myimage
-                image-file: myimage.tgz
-                builder: heroku/buildpacks:18
-            - publish:
-                requires:
-                  - buildpacks/build

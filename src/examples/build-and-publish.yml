@@ -1,0 +1,26 @@
+description: Build and publish
+
+usage:
+  version: 2.1
+  orbs:
+    buildpacks: buildpacks/pack@x.y.z
+  workflows:
+    main:
+      jobs:
+        - buildpacks/build:
+            image-name: myimage
+            image-file: myimage.tgz
+            builder: heroku/buildpacks:18
+        - publish:
+            requires:
+              - buildpacks/build
+  jobs:
+    publish:
+      machine: true
+      steps:
+        - attach_workspace:
+            at: /tmp/workspace
+        - run:
+            command: |
+              docker load -i /tmp/workspace/images/myimage.tgz
+              docker push myimage
