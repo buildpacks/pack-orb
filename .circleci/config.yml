@@ -1,19 +1,50 @@
 version: 2.1
 orbs:
   orb-tools: circleci/orb-tools@9.1.0
+  buildpacks: buildpacks/pack@<<pipeline.parameters.dev-orb-version>>
+
+# Pipeline Parameters
+parameters:
+  ## internal to orb-tools
+  run-integration-tests:
+    description: An internal flag to prevent integration test from running before a development version has been created.
+    type: boolean
+    default: false
+  ## internal to orb-tools
+  dev-orb-version:
+    description: >
+      The development version of the orb to test.
+      This value is automatically adjusted by the "trigger-integration-tests-workflow" job to correspond with the specific version created by the commit and should not be edited.
+      A "dev:alpha" version must exist for the initial pipeline run.
+    type: string
+    default: "dev:alpha"
 
 workflows:
+  integration-test:
+    when: << pipeline.parameters.run-integration-tests >>
+    jobs:
+      - buildpacks/build:
+          working-directory: samples/apps/ruby-bundler
+          image-name: test-image
+          builder: heroku/buildpacks:18
+          after-checkout:
+            - run: git clone --depth=1 https://github.com/buildpacks/samples.git samples
   validate-dev:
+    unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       - orb-tools/lint
+      - orb-tools/pack
       - orb-tools/publish-dev:
           orb-name: buildpacks/pack
-          orb-path: orb.yml
-          publish-token-variable: CIRCLE_TOKEN
-          checkout: true
           requires:
             - orb-tools/lint
+            - orb-tools/pack
+      - orb-tools/trigger-integration-tests-workflow:
+          name: trigger-integration-dev
+          requires:
+            - orb-tools/publish-dev
   draft-release:
+    unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       - hold-for-approval:
           filters:
@@ -27,11 +58,10 @@ workflows:
           requires:
             - hold-for-approval
   publish:
+    unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       - orb-tools/publish:
           orb-ref: buildpacks/pack@$CIRCLE_TAG
-          orb-path: orb.yml
-          publish-token-variable: CIRCLE_TOKEN
           filters:
             branches:
               ignore: /.*/

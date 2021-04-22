@@ -1,0 +1,13 @@
+description: Run specific buildpacks
+
+usage:
+  version: 2.1
+  orbs:
+    buildpacks: buildpacks/pack@x.y.z
+  workflows:
+    main:
+      jobs:
+        - buildpacks/build:
+            image-name: myimage
+            builder: heroku/buildpacks:18
+            buildpack: heroku/ruby
