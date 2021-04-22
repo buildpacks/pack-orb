@@ -10,9 +10,10 @@ For more information and usage examples, see the [CircleCI documentation](https:
 
 See the [documentation on the CircleCI Orb Registry](https://circleci.com/orbs/registry/orb/buildpacks/pack).
 
-## Releasing
+## Contributing
 
-1. Create a `release/<#.#.#>` branch
-    - `<#.#.#>` will be the version released
-2. Check [CircleCI](https://circleci.com/gh/buildpacks/pack-orb) to manually approve the release workflow.
-3. Check [releases](https://github.com/buildpacks/pack-orb/releases) and publish release draft.
+We ❤ contributions.
+
+- [CONTRIBUTING](CONTRIBUTING.md) - Information on how to contribute, including the pull request process.
+- [DEVELOPMENT](DEVELOPMENT.md) - Further detail to help you during the development process.
+- [RELEASE](RELEASE.md) - Further details about our release process.

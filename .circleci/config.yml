@@ -1,6 +1,9 @@
 version: 2.1
+
+# Orb depedencies
 orbs:
   orb-tools: circleci/orb-tools@9.1.0
+  ## used for integration tests
   buildpacks: buildpacks/pack@<<pipeline.parameters.dev-orb-version>>
 
 # Pipeline Parameters
@@ -19,6 +22,55 @@ parameters:
     type: string
     default: "dev:alpha"
 
+# Jobs to use in workflows
+jobs:
+  github-release:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run:
+          name: Install releaser
+          command: go get -u github.com/tcnksm/ghr
+      - checkout
+      - run:
+          name: Determine version
+          command: |
+            BRANCH=$CIRCLE_BRANCH make future-version | tail -1 > VERSION
+            cat VERSION
+      - run:
+          name: Generate changelog
+          command: |
+            VERSION=$(cat VERSION) make generate-changelog
+      - run:
+          name: Create GH release
+          command: |
+            VERSION=$(cat VERSION)
+            ghr -draft -t $GITHUB_BOT_PAT -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
+
+
+# Workflows
+#
+# The following is a visual representation of the existing workflows for development and releasing:
+#
+#  on main branch and per PR         on release/* branch
+# ┌────────────────────────────┐    ┌─────────────────┐
+# │                            │    │                 │
+# │       ┌────────────┐       │    │  draft release  │
+# │       │            │       │    │                 │
+# │       │  validate  │       │    └─────────────────┘
+# │       │            │       │
+# │       └──────┬─────┘       │
+# │              │ *trigger*   │
+# │              │             │     on tags
+# │      ┌───────▼───────┐     │    ┌────────────┐
+# │      │               │     │    │            │
+# │      │  integration  │     │    │   publish  │
+# │      │     tests     │     │    │            │
+# │      │               │     │    └────────────┘
+# │      └───────────────┘     │
+# │                            │
+# └────────────────────────────┘
+#
 workflows:
   integration-test:
     when: << pipeline.parameters.run-integration-tests >>
@@ -67,33 +119,3 @@ workflows:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
-
-jobs:
-  github-release:
-    machine:
-      image: ubuntu-2004:202010-01
-    steps:
-      - run:
-          name: Install generator
-          command: gem install github_changelog_generator
-      - run:
-          name: Install releaser
-          command: go get -u github.com/tcnksm/ghr
-      - checkout
-      - run:
-          name: Determine version
-          command: |
-            [[ $CIRCLE_BRANCH =~ ^release/(.*)$ ]] && echo -n ${BASH_REMATCH[1]} > VERSION || (echo "failed to determine version" && exit 99)
-            cat VERSION
-      - run:
-          name: Generate changelog
-          command: |
-            github_changelog_generator --user $CIRCLE_PROJECT_USERNAME --project $CIRCLE_PROJECT_REPONAME --token $GITHUB_BOT_PAT --future-release $(cat VERSION) -o CHANGELOG.tmp.md
-            # remove footer
-            head -n -3 CHANGELOG.tmp.md > CHANGELOG.md
-            cat CHANGELOG.md
-      - run:
-          name: Create GH release
-          command: |
-            VERSION=$(cat VERSION)
-            ghr -draft -t $GITHUB_BOT_PAT -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
