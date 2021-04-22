@@ -111,10 +111,20 @@ workflows:
   publish:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - orb-tools/publish:
-          orb-ref: buildpacks/pack@$CIRCLE_TAG
+      - orb-tools/pack:
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
+      - orb-tools/publish:
+          orb-ref: buildpacks/pack@$CIRCLE_TAG
+          attach-workspace: true
+          checkout: false
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+          requires:
+            - orb-tools/pack
