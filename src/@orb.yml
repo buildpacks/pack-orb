@@ -122,7 +122,7 @@ commands:
             WORKING_DIRECTORY=$(if [ -n "<< parameters.working-directory >>" ]; then echo -n "--path << parameters.working-directory >>"; else echo -n ""; fi)
             BUILD_PACK_ARG=$(if [ -n "<< parameters.buildpack >>" ]; then echo -n "--buildpack << parameters.buildpack >>"; else echo -n ""; fi)
 
-            eval pack build << parameters.image-name >> --builder << parameters.builder >> "${WORKING_DIRECTORY}" "${BUILD_PACK_ARG}" "${ENV_VARS}"
+            eval pack build --no-color << parameters.image-name >> --builder << parameters.builder >> "${WORKING_DIRECTORY}" "${BUILD_PACK_ARG}" "${ENV_VARS}"
       - save_cache:
           key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}-{{ epoch }}
           paths:
