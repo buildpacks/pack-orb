@@ -45,8 +45,7 @@ jobs:
           name: Create GH release
           command: |
             VERSION=$(cat VERSION)
-            ghr -draft -t $GITHUB_BOT_PAT -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
-
+            ghr -draft -t $GITHUB_TOKEN -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
 
 # Workflows
 #
