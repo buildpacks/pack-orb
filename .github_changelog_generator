@@ -1,6 +1,18 @@
+## Filtering
 unreleased-only=true
 issues=false
-bugs-label=Fixes:
-bug-labels=type/bug
-header-label=## Changelog
+
+## Other Visuals
+compare-link=false
 usernames-as-github-logins=true
+
+## Sections
+header-label=## Changelog
+
+enhancement-label=### Improvements
+enhancement-labels=type/enhancement
+
+bugs-label=### Fixes
+bug-labels=type/bug
+
+pr-label=### Other Changes
