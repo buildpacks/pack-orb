@@ -36,7 +36,7 @@ jobs:
       version:
         type: string
         description: Version of 'pack' to use.
-        default: 0.13.1
+        default: 0.18.1
       after-checkout:
         description: Optional steps to run after checking out the code.
         type: steps
@@ -137,7 +137,7 @@ commands:
         type: string
       version:
         type: string
-        default: 0.13.1
+        default: 0.18.1
     steps:
       - run:
           name: "Setup and install pack"
