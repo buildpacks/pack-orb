@@ -24,6 +24,14 @@ parameters:
 
 # Jobs to use in workflows
 jobs:
+  test:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - checkout
+      - run:
+          name: Run unit tests
+          command: make test
   github-release:
     machine:
       image: ubuntu-2004:202010-01
@@ -85,6 +93,7 @@ workflows:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       - orb-tools/lint
+      - test
       - orb-tools/pack
       - orb-tools/publish-dev:
           orb-name: buildpacks/pack

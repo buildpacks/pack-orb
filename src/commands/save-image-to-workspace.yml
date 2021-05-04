@@ -1,0 +1,17 @@
+description: "Save image to file"
+parameters:
+  image-name:
+    type: string
+  image-file:
+    type: string
+steps:
+  - run:
+      name: Save image to workspace
+      environment:
+        PARAM_IMAGE_NAME: << parameters.image-name >>
+        PARAM_IMAGE_FILE: << parameters.image-file >>
+      command: <<include(scripts/save-image-to-workspace.sh)>>
+  - persist_to_workspace:
+      root: .
+      paths:
+        - ./
