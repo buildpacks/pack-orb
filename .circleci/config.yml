@@ -53,8 +53,7 @@ jobs:
           name: Create GH release
           command: |
             VERSION=$(cat VERSION)
-            ghr -draft -t $GITHUB_BOT_PAT -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
-
+            ghr -draft -t $GITHUB_TOKEN -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
 
 # Workflows
 #
@@ -121,10 +120,20 @@ workflows:
   publish:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - orb-tools/publish:
-          orb-ref: buildpacks/pack@$CIRCLE_TAG
+      - orb-tools/pack:
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
+      - orb-tools/publish:
+          orb-ref: buildpacks/pack@$CIRCLE_TAG
+          attach-workspace: true
+          checkout: false
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+          requires:
+            - orb-tools/pack
