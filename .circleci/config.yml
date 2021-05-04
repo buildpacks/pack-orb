@@ -2,7 +2,7 @@ version: 2.1
 
 # Orb depedencies
 orbs:
-  orb-tools: circleci/orb-tools@9.1.0
+  orb-tools: circleci/orb-tools@10.0.3
   ## used for integration tests
   buildpacks: buildpacks/pack@<<pipeline.parameters.dev-orb-version>>
 
@@ -24,6 +24,14 @@ parameters:
 
 # Jobs to use in workflows
 jobs:
+  test:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - checkout
+      - run:
+          name: Run unit tests
+          command: make test
   github-release:
     machine:
       image: ubuntu-2004:202010-01
@@ -45,8 +53,7 @@ jobs:
           name: Create GH release
           command: |
             VERSION=$(cat VERSION)
-            ghr -draft -t $GITHUB_BOT_PAT -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
-
+            ghr -draft -t $GITHUB_TOKEN -c $CIRCLE_SHA1 -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -b "$(cat CHANGELOG.md)" -n "pack-orb ${VERSION}" $VERSION
 
 # Workflows
 #
@@ -85,7 +92,9 @@ workflows:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       - orb-tools/lint
-      - orb-tools/pack
+      - test
+      - orb-tools/pack:
+          use-orb-pack: true
       - orb-tools/publish-dev:
           orb-name: buildpacks/pack
           requires:
@@ -112,10 +121,21 @@ workflows:
   publish:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - orb-tools/publish:
-          orb-ref: buildpacks/pack@$CIRCLE_TAG
+      - orb-tools/pack:
+          use-orb-pack: true
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
+      - orb-tools/publish:
+          orb-ref: buildpacks/pack@$CIRCLE_TAG
+          attach-workspace: true
+          checkout: false
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+          requires:
+            - orb-tools/pack

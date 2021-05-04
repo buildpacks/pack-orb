@@ -64,24 +64,6 @@ jobs:
           image-name: << parameters.image-name >>
           image-file: << parameters.image-file >>
 commands:
-  save-image-to-workspace:
-    description: "Save image"
-    parameters:
-      image-name:
-        type: string
-      image-file:
-        type: string
-        default: image.tgz
-    steps:
-      - run:
-          name: Save image to workspace
-          command: |
-            mkdir -p images
-            docker save -o images/<< parameters.image-file >> << parameters.image-name >>
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./
   pack-build:
     description: "Run pack build"
     parameters:

@@ -13,3 +13,11 @@
 ```
 make lint
 ```
+
+### Testing
+
+Tests are structured as recommended by the [Orb Project Template](https://github.com/CircleCI-Public/Orb-Project-Template/tree/master/src/tests). They use [shunit2](https://github.com/kward/shunit2) instead of [BATS-Core](https://github.com/bats-core/bats-core).
+
+```
+make test
+```

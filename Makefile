@@ -1,10 +1,18 @@
 BRANCH?=$(shell git branch --show-current)
 VERSION?=$(shell echo $(BRANCH) | grep "^release" | sed 's;release\/\(.*\);\1;')
 
-.PHONY: validate
+.PHONY: lint
 lint:
+	@echo "> Validating orb..."
 	circleci orb pack src/ | circleci orb validate -
+
+	@echo "> Validating CI config..."
 	circleci config validate .circleci/config.yml
+
+.PHONE: test
+test:
+	@echo "> Running tests..."
+	cd ./src/tests/; find . -type f -name "*_test.sh" -exec {} \;
 
 .PHONY: future-version
 future-version:
