@@ -2,7 +2,7 @@ version: 2.1
 
 # Orb depedencies
 orbs:
-  orb-tools: circleci/orb-tools@9.1.0
+  orb-tools: circleci/orb-tools@10.0.3
   ## used for integration tests
   buildpacks: buildpacks/pack@<<pipeline.parameters.dev-orb-version>>
 
