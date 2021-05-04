@@ -93,7 +93,8 @@ workflows:
     jobs:
       - orb-tools/lint
       - test
-      - orb-tools/pack
+      - orb-tools/pack:
+          use-orb-pack: true
       - orb-tools/publish-dev:
           orb-name: buildpacks/pack
           requires:
@@ -121,6 +122,7 @@ workflows:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
       - orb-tools/pack:
+          use-orb-pack: true
           filters:
             branches:
               ignore: /.*/
