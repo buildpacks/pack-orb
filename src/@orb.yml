@@ -25,9 +25,9 @@ jobs:
       builder:
         type: string
         description: Builder image name to use.
-      buildpack:
+      buildpacks:
         type: string
-        description: Explicit buildpack to use for building.
+        description: The specific buildpacks to execute. Semicolon (;) delimited.
         default: ""
       env-vars:
         type: string
@@ -55,60 +55,15 @@ jobs:
           condition: << parameters.after-checkout >>
           steps: << parameters.after-checkout >>
       - pack-build:
-          working-directory: << parameters.working-directory >>
+          path: << parameters.working-directory >>
           image-name: << parameters.image-name >>
           builder: << parameters.builder >>
-          buildpack: << parameters.buildpack >>
+          buildpacks: << parameters.buildpacks >>
           env-vars: << parameters.env-vars >>
       - save-image-to-workspace:
           image-name: << parameters.image-name >>
           image-file: << parameters.image-file >>
 commands:
-  pack-build:
-    description: "Run pack build"
-    parameters:
-      working-directory:
-        type: string
-      image-name:
-        type: string
-      builder:
-        type: string
-      buildpack:
-        type: string
-      env-vars:
-        type: string
-    steps:
-      - restore_cache:
-          key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}
-      - run:
-          name: Run pack build
-          command: |
-            ENV_VARS=""
-
-            in="<< parameters.env-vars >>"
-            IFS=';' list=($in)
-            for item in "${list[@]}"; do
-              case "$item" in
-                 *\ * )
-                      IFS='='
-                      read -a strarr \<<<"$item"
-                      ENV_VARS="--env ${strarr[0]}=\"${strarr[1]}\" ${ENV_VARS}"
-                      unset IFS
-                      ;;
-                   *)
-                      ENV_VARS="--env ${item} ${ENV_VARS}"
-                      ;;
-              esac
-            done
-
-            WORKING_DIRECTORY=$(if [ -n "<< parameters.working-directory >>" ]; then echo -n "--path << parameters.working-directory >>"; else echo -n ""; fi)
-            BUILD_PACK_ARG=$(if [ -n "<< parameters.buildpack >>" ]; then echo -n "--buildpack << parameters.buildpack >>"; else echo -n ""; fi)
-
-            eval pack build --no-color << parameters.image-name >> --builder << parameters.builder >> "${WORKING_DIRECTORY}" "${BUILD_PACK_ARG}" "${ENV_VARS}"
-      - save_cache:
-          key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}-{{ epoch }}
-          paths:
-            - /var/lib/docker/volumes/
   install-pack:
     description: "Setup and install pack"
     parameters:
