@@ -44,6 +44,21 @@ testPathFlagWithValue() {
   assertContains "$results" "--path \"some/nested/dir\""
 }
 
+testTagFlagsWithNoValues() {
+  local values=""
+  local results=$(create_tag_flags "${values}") code="$?"
+  assertEquals 0 "$code"
+  assertEquals "$results" ""
+}
+
+testTagFlagsWithValues() {
+  local values="my-image;docker.io/org/image:2"
+  local results=$(create_tag_flags "${values}") code="$?"
+  assertEquals 0 "$code"
+  assertContains "$results" "--tag \"my-image\""
+  assertContains "$results" "--tag \"docker.io/org/image:2\""
+}
+
 testCreateCommandMissingBuilder() {
   local results=$(create_command) code="$?"
   assertEquals 1 "$code"
@@ -57,9 +72,9 @@ testCreateCommandMissingImageName() {
 }
 
 testCreateCommandFull() {
-  local results=$(PARAM_BUILDER=some-builder PARAM_IMAGE_NAME=some/image:latest PARAM_PATH=some/dir PARAM_ENV_VARS="ENV_1=VAL_1" PARAM_BUILDPACKS=my-buildpack@1.2.3 create_command) code="$?"
+  local results=$(PARAM_BUILDER=some-builder PARAM_IMAGE_NAME=some/image:latest PARAM_PATH=some/dir PARAM_BUILDPACKS=my-buildpack@1.2.3 PARAM_ENV_VARS="ENV_1=VAL_1" PARAM_TAGS="another/tag:2" create_command) code="$?"
   assertEquals 0 "$code"
-  assertEquals 'pack build --no-color --builder "some-builder" --path "some/dir" --env ENV_1="VAL_1" --buildpack "my-buildpack@1.2.3" "some/image:latest"' "$results"
+  assertEquals 'pack build --no-color --builder "some-builder" --path "some/dir" --buildpack "my-buildpack@1.2.3" --env ENV_1="VAL_1" --tag "another/tag:2" "some/image:latest"' "$results"
 }
 
 oneTimeSetUp() {

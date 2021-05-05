@@ -1,8 +1,17 @@
 BRANCH?=$(shell git branch --show-current)
 VERSION?=$(shell echo $(BRANCH) | grep "^release" | sed 's;release\/\(.*\);\1;')
 
+.PHONY: publish-dev
+publish-dev:
+	@echo "> Publishing new dev:alpha version..."
+	circleci orb pack src/ | circleci orb publish - buildpacks/pack@dev:alpha
+
 .PHONY: lint
 lint:
+	@echo "NOTE: If changes have been make to .circleci/config.yml "\
+	"that depend on changes to the orb. It may require for the 'dev:alpha' "\
+	"version to be updated.\n\nYou may run 'publish-dev' to do so (if permissions allow).\n"
+
 	@echo "> Validating orb..."
 	circleci orb pack src/ | circleci orb validate -
 

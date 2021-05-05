@@ -11,20 +11,16 @@ jobs:
     machine:
       image: << parameters.executor-image >>
     parameters:
+      builder:
+        type: string
+        description: Builder image name to use.
+      image-name:
+        type: string
+        description: Image name (aka tag) of the app image to be produced.
       working-directory:
         type: string
         description: The directory where the app source is located.
         default: ""
-      image-name:
-        type: string
-        description: Image name (aka tag) of the app image to be produced.
-      image-file:
-        type: string
-        description: Filename to save the app image as locally.
-        default: "image.tgz"
-      builder:
-        type: string
-        description: Builder image name to use.
       buildpacks:
         type: string
         description: The specific buildpacks to execute. Semicolon (;) delimited.
@@ -33,6 +29,14 @@ jobs:
         type: string
         description: Build-time environment variables. Semicolon (;) delimited.
         default: ""
+      tags:
+        type: string
+        description: Additional image names to create. Semicolon (;) delimited.
+        default: ""
+      image-file:
+        type: string
+        description: Filename to save the app image as locally.
+        default: "image.tgz"
       version:
         type: string
         description: Version of 'pack' to use.
@@ -55,11 +59,12 @@ jobs:
           condition: << parameters.after-checkout >>
           steps: << parameters.after-checkout >>
       - pack-build:
-          path: << parameters.working-directory >>
-          image-name: << parameters.image-name >>
           builder: << parameters.builder >>
+          image-name: << parameters.image-name >>
+          path: << parameters.working-directory >>
           buildpacks: << parameters.buildpacks >>
           env-vars: << parameters.env-vars >>
+          tags: << parameters.tags >>
       - save-image-to-workspace:
           image-name: << parameters.image-name >>
           image-file: << parameters.image-file >>

@@ -27,6 +27,16 @@ create_path_flag() {
   fi
 }
 
+create_tag_flags() {
+  local flags=()
+  IFS=';' read -ra entries <<<"$1"
+  for entry in "${entries[@]}"; do
+    flags+=("--tag \"${entry}\"")
+  done
+
+  echo "${flags[@]}"
+}
+
 create_command() {
   for i in PARAM_BUILDER,builder PARAM_IMAGE_NAME,image-name; do
     KEY=${i%,*}
@@ -42,8 +52,9 @@ create_command() {
     --no-color \
     --builder \"${PARAM_BUILDER}\" \
     $(create_path_flag "${PARAM_PATH}") \
-    $(create_env_var_flags "${PARAM_ENV_VARS}") \
     $(create_buildpack_flags "${PARAM_BUILDPACKS}") \
+    $(create_env_var_flags "${PARAM_ENV_VARS}") \
+    $(create_tag_flags "${PARAM_TAGS}") \
     \"${PARAM_IMAGE_NAME}\"
 }
 

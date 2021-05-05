@@ -18,6 +18,10 @@ parameters:
     type: string
     description: Environment variables to set during the build. Semicolon (;) delimited.
     default: ""
+  tags:
+    type: string
+    description: Additional image names to create. Semicolon (;) delimited.
+    default: ""
 steps:
   - restore_cache:
       key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}
@@ -29,6 +33,7 @@ steps:
         PARAM_PATH: << parameters.path >>
         PARAM_BUILDPACKS: << parameters.buildpacks >>
         PARAM_ENV_VARS: << parameters.env-vars >>
+        PARAM_TAGS: << parameters.tags >>
       command: <<include(scripts/pack-build.sh)>>
   - save_cache:
       key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}-{{ epoch }}

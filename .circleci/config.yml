@@ -83,9 +83,22 @@ workflows:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
       - buildpacks/build:
-          working-directory: samples/apps/ruby-bundler
+          name: "Minimal"
+          builder: cnbs/sample-builder:bionic
           image-name: test-image
-          builder: heroku/buildpacks:18
+          working-directory: samples/apps/ruby-bundler
+          after-checkout:
+            - run: git clone --depth=1 https://github.com/buildpacks/samples.git samples
+      - buildpacks/build:
+          name: "All Options"
+          builder: cnbs/sample-builder:bionic
+          image-name: test-image
+          working-directory: samples/apps/ruby-bundler
+          buildpacks: samples/ruby-bundler
+          env-vars: "ENV_1=VAL 1;ENV_2=VAL 2"
+          tags: "another-image:2"
+          image-file: "exported-image.tgz"
+          version: "0.18.1"
           after-checkout:
             - run: git clone --depth=1 https://github.com/buildpacks/samples.git samples
   validate-dev:
