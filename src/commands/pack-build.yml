@@ -1,0 +1,41 @@
+description: "Run pack build"
+parameters:
+  builder:
+    type: string
+    description: The builder image name to use for building.
+  image-name:
+    type: string
+    description: The primary image name to save the image as.
+  path:
+    type: string
+    description: The path to the working directory to run `pack build` in.
+    default: ""
+  buildpacks:
+    type: string
+    description: The specific buildpacks to execute. Semicolon (;) delimited.
+    default: ""
+  env-vars:
+    type: string
+    description: Environment variables to set during the build. Semicolon (;) delimited.
+    default: ""
+  tags:
+    type: string
+    description: Additional image names to create. Semicolon (;) delimited.
+    default: ""
+steps:
+  - restore_cache:
+      key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}
+  - run:
+      name: Run pack build
+      environment:
+        PARAM_BUILDER: << parameters.builder >>
+        PARAM_IMAGE_NAME: << parameters.image-name >>
+        PARAM_PATH: << parameters.path >>
+        PARAM_BUILDPACKS: << parameters.buildpacks >>
+        PARAM_ENV_VARS: << parameters.env-vars >>
+        PARAM_TAGS: << parameters.tags >>
+      command: <<include(scripts/pack-build.sh)>>
+  - save_cache:
+      key: pack-cache-<< parameters.image-name >>-<< parameters.builder >>-{{ arch }}-{{ epoch }}
+      paths:
+        - /var/lib/docker/volumes/
