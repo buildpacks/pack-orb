@@ -79,7 +79,7 @@ commands:
         type: string
       version:
         type: string
-        default: 0.18.1
+        default: 0.20.0
     steps:
       - run:
           name: "Setup and install pack"
