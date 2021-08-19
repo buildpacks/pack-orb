@@ -1,0 +1,26 @@
+name: update-pack-version
+
+on:
+  repository_dispatch:
+    types:
+      - pack-release
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update pack version of buildpacks/pack-orb/src/@orb.yml on new pack release
+        uses: actions/checkout@v2
+        run: |
+            NEW_VERSION = $(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/buildpacks/pack/releases/latest | jq .tag_name -r | cut -c 2-)
+            sed -if "s/default: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/default: "$NEW_VERSION"/g" src/@orb.yml
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v3.10.0
+        with:
+          token: ${{ secrets.DISTRIBUTION_GITHUB_TOKEN }}
+          commit-message: Update version to latest release of buildpacks/pack
+          title: Update default version of @orb.yml
+          body: Updates default version of @orb.yml to reflect release changes in buildpacks/pack
+          branch: update-version
+          base: main
+          signoff: true
