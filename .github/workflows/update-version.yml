@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
         run: |
             NEW_VERSION = $(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/buildpacks/pack/releases/latest | jq .tag_name -r | cut -c 2-)
-            sed -if "s/default: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/default: "$NEW_VERSION"/g" src/@orb.yml
+            sed -i "s/default: [0-9]\{1,\}.[0-9]\{1,\}.[0-9]\{1,\}/default: "$NEW_VERSION"/g" src/@orb.yml
       - name: Create pull request
         uses: peter-evans/create-pull-request@v3.10.0
         with:
