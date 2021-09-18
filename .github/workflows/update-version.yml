@@ -5,6 +5,9 @@ on:
     types:
       - pack-release
   workflow_dispatch: 
+    inputs:
+      tags:
+        description: 'Testing manual trigger'
 
 jobs:
   update-version:
