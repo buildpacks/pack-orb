@@ -2,8 +2,8 @@ name: update-pack-version
 
 on:
   repository_dispatch:
-      types:
-        - pack-release
+    types:
+      - pack-release
   workflow_dispatch: 
 
 jobs:
