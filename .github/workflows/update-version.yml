@@ -4,7 +4,7 @@ on:
   repository_dispatch:
     types:
       - pack-release
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   update-version:
