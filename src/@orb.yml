@@ -85,7 +85,7 @@ commands:
           name: "Setup and install pack"
           command: |
             mkdir -p << parameters.install-dir >>
-            curl -L "https://github.com/buildpack/pack/releases/download/v<< parameters.version >>/pack-v<< parameters.version >>-linux.tgz" | tar xzm -C << parameters.install-dir >>
+            curl -L --fail --retry 3 --connect-timeout 5 --max-time 60 "https://github.com/buildpack/pack/releases/download/v<< parameters.version >>/pack-v<< parameters.version >>-linux.tgz" | tar xzm -C << parameters.install-dir >>
             export PATH="$PATH:<< parameters.install-dir >>"
             mkdir -p ~/.docker/
             if [ ! -f ~/.docker/config.json ]; then
