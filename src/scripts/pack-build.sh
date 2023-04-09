@@ -51,6 +51,7 @@ create_command() {
   echo pack build \
     --no-color \
     --builder \"${PARAM_BUILDER}\" \
+    --trust-builder \
     $(create_path_flag "${PARAM_PATH}") \
     $(create_buildpack_flags "${PARAM_BUILDPACKS}") \
     $(create_env_var_flags "${PARAM_ENV_VARS}") \
