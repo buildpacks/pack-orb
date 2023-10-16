@@ -10,7 +10,7 @@ usage:
         - buildpacks/build:
             image-name: myimage
             image-file: myimage.tgz
-            builder: heroku/buildpacks:18
+            builder: heroku/builder:22
         - publish:
             requires:
               - buildpacks/build

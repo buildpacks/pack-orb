@@ -9,5 +9,5 @@ usage:
       jobs:
         - buildpacks/build:
             image-name: myimage
-            builder: heroku/buildpacks:18
+            builder: heroku/builder:22
             buildpack: heroku/ruby
