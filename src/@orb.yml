@@ -40,7 +40,7 @@ jobs:
       version:
         type: string
         description: Version of 'pack' to use.
-        default: 0.32.1
+        default: 0.29.0
       after-checkout:
         description: Optional steps to run after checking out the code.
         type: steps
@@ -48,7 +48,7 @@ jobs:
       executor-image:
         type: string
         description: Image to execute 'pack' in.
-        default: ubuntu-2004:202010-01
+        default: ubuntu-2204:2023.04.2
     steps:
       - run: sudo chown -R circleci /var/lib/docker/volumes
       - install-pack:
@@ -79,7 +79,7 @@ commands:
         type: string
       version:
         type: string
-        default: 0.32.1
+        default: 0.29.0
     steps:
       - run:
           name: "Setup and install pack"
